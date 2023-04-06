@@ -1,0 +1,33 @@
+// clang-format off
+#pragma once
+
+#include <string_view>
+
+/** Wireless SSID (Pico W) */
+inline constexpr std::string_view SSID = "@WIRELESS_SSID@";
+
+/** Wireless Passphrase (Pico W) */
+inline constexpr std::string_view PASSPHRASE = "@WIRELESS_PASSPHRASE@";
+
+/** IPv4 Address of the device receiving the data (Pico W) */
+inline constexpr std::string_view MQTT_BROKER = "@MQTT_BROKER@";
+
+/** Port of the device receiving the data (Pico W) */
+inline constexpr uint16_t CONFIGURED_MQTT_PORT = @MQTT_PORT@;
+
+/** The name of the device on MQTT */
+inline constexpr std::string_view DEVICE_NAME = "@DEVICE_NAME@";
+
+/** Monitor Build Version */
+inline constexpr std::string_view VERSION = "@BUILD_VERSION@";
+
+/** GPIO Pin for the Feedback LED used by the DHT Sensor */
+inline constexpr uint8_t MQTT_FEEDBACK_PIN = @MQTT_FEEDBACK_PIN@;
+
+
+inline constexpr std::string_view PROGRAM_TOPIC = "@DEVICE_NAME@";
+inline constexpr std::string_view VERSION_TOPIC = "@DEVICE_NAME@/version";
+inline constexpr std::string_view BUILD_DATE_TOPIC = "@DEVICE_NAME@/build_date";
+inline constexpr std::string_view START_DATE_TOPIC = "@DEVICE_NAME@/start_date";
+
+// clang-format on

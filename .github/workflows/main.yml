@@ -1,0 +1,29 @@
+name: Main
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: [self-hosted, Linux, pico]
+    env:
+      BUILD_TYPE: Release
+      PICO_SDK_PATH: /etc/pico-sdk
+
+    steps:
+      - name: Set Build Version (Tag)
+        run: echo "build_version=${{  github.ref_name }}" >> $GITHUB_ENV
+        if: ${{ github.ref_type == 'tag' }}
+
+      - name: Set Build Version (Branch)
+        run: echo "build_version=0.0.0-${{  github.run_number }}" >> $GITHUB_ENV
+        if: ${{ github.ref_type == 'branch' }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build Filament Dryer
+        run: bash build.bash --build -DBUILD_VERSION=${{ env.build_version }}
+
+      - name: Upload Filament Dryer
+        uses: actions/upload-artifact@v3
+        with:
+          name: Filament Dryer firmware
+          path: build/filament-dryer.uf2
