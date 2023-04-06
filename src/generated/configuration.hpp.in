@@ -22,6 +22,12 @@ inline constexpr std::string_view DEVICE_NAME = "@DEVICE_NAME@";
 inline constexpr std::string_view VERSION = "@BUILD_VERSION@";
 
 /** GPIO Pin for the Feedback LED used by the DHT Sensor */
+inline constexpr uint8_t DHT_FEEDBACK_PIN = @DHT_FEEDBACK_PIN@;
+
+/** GPIO Pin for DHT Sensor Sensor data */
+inline constexpr uint8_t DHT_DATA_PIN = @DHT_DATA_PIN@;
+
+/** GPIO Pin for the Feedback LED used by the DHT Sensor */
 inline constexpr uint8_t MQTT_FEEDBACK_PIN = @MQTT_FEEDBACK_PIN@;
 
 
