@@ -33,6 +33,14 @@ if(NOT DEFINED MQTT_FEEDBACK_PIN)
     set(MQTT_FEEDBACK_PIN 14)
 endif()
 
+if(NOT DEFINED DHT_FEEDBACK_PIN)
+    set(DHT_FEEDBACK_PIN 13)
+endif()
+
+if(NOT DEFINED DHT_DATA_PIN)
+    set(DHT_DATA_PIN 18)
+endif()
+
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/configuration.hpp.in
     ${CMAKE_BINARY_DIR}/generated/configuration.hpp
@@ -62,12 +70,17 @@ target_include_directories(
 target_sources(
     ${PROJECT_NAME}
     PRIVATE
+        src/sensors/board.cpp
+        src/sensors/dht.cpp
+
         src/main.cpp
+        src/utilities.cpp
 )
 
 target_link_libraries(
     ${PROJECT_NAME}
     pico_stdlib
+    hardware_adc
 )
 
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
