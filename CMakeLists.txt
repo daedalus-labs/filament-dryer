@@ -70,6 +70,11 @@ target_include_directories(
 target_sources(
     ${PROJECT_NAME}
     PRIVATE
+        src/connectivity/dns/resolver.cpp
+        src/connectivity/mqtt/client.cpp
+        src/connectivity/wireless/connection-status.cpp
+        src/connectivity/wireless/wifi-connection.cpp
+
         src/sensors/board.cpp
         src/sensors/dht.cpp
 
@@ -79,6 +84,8 @@ target_sources(
 
 target_link_libraries(
     ${PROJECT_NAME}
+    pico_cyw43_arch_lwip_threadsafe_background
+    pico_lwip_mqtt
     pico_stdlib
     hardware_adc
 )
