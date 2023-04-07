@@ -4,6 +4,7 @@ SPDX-License-Identifier: BSD-3-Clause
 ------------------------------------------------------------------------------*/
 #include "connectivity/mqtt.hpp"
 #include "connectivity/wireless.hpp"
+#include "controllers/heater.hpp"
 #include "generated/configuration.hpp"
 #include "sensors/board.hpp"
 #include "sensors/constants.hpp"
@@ -19,6 +20,9 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <cstdio>
 
 
+inline constexpr float HEATER_HYSTERESIS = 5.0f;
+inline constexpr uint32_t HEATER_MAX_ON_TIME_S = 10 * 60;
+
 int main(int argc, char** argv)
 {
     stdio_init_all();
@@ -28,6 +32,7 @@ int main(int argc, char** argv)
     mqtt::Client mqtt(MQTT_BROKER, CONFIGURED_MQTT_PORT, DEVICE_NAME);
     DHT sensor(DHTType::DHT22, DHT_DATA_PIN, DHT_FEEDBACK_PIN);
     sensors::Board board;
+    controllers::Heater heater(HEATER_CONTROL_PIN, HEATER_FEEDBACK_PIN, HEATER_HYSTERESIS, HEATER_MAX_ON_TIME_S);
 
     uint32_t count = 0;
     float board_temp = 0.0f;

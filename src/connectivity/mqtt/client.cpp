@@ -7,6 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "connectivity/constants.hpp"
 #include "connectivity/dns/resolver.hpp"
+#include "mqtt/detail/context.hpp"
 
 #include <lwip/apps/mqtt.h>
 #include <pico/cyw43_arch.h>
@@ -42,8 +43,7 @@ static void onConnectionComplete(mqtt_client_t* client, void* arg, mqtt_connecti
  */
 static void onDataReceived(void* arg, const u8_t* data, u16_t length, u8_t flags)
 {
-    // This function is intentionally empty
-    //  - It is being left as a skeleton for future use.
+    printf("Data received: %u bytes (flags: %u)\n", length, flags);
 }
 
 /**
@@ -57,8 +57,8 @@ static void onDataReceived(void* arg, const u8_t* data, u16_t length, u8_t flags
  */
 static void onTopicUpdated(void* arg, const char* topic, u32_t total_length)
 {
-    // This function is intentionally empty
-    //  - It is being left as a skeleton for future use.
+    printf("Subscribed topic received: %s (length: %u)\n", topic, total_length);
+    mqtt::detail::Context::context().setPendingTopic(topic, total_length);
 }
 
 /**
@@ -176,4 +176,7 @@ bool Client::publish(std::string_view topic, const void* payload, uint16_t size,
     }
     return true;
 }
+
+bool Client::subscribe(std::string_view topic)
+{}
 } // namespace mqtt

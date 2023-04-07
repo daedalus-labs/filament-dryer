@@ -30,6 +30,12 @@ inline constexpr uint8_t DHT_DATA_PIN = @DHT_DATA_PIN@;
 /** GPIO Pin for the Feedback LED used by the DHT Sensor */
 inline constexpr uint8_t MQTT_FEEDBACK_PIN = @MQTT_FEEDBACK_PIN@;
 
+/** GPIO Pin for the Feedback LED used by the Heater */
+inline constexpr uint8_t HEATER_FEEDBACK_PIN = @HEATER_FEEDBACK_PIN@;
+
+/** GPIO Pin for the Heater control */
+inline constexpr uint8_t HEATER_CONTROL_PIN = @HEATER_CONTROL_PIN@;
+
 
 inline constexpr std::string_view PROGRAM_TOPIC = "@DEVICE_NAME@";
 inline constexpr std::string_view VERSION_TOPIC = "@DEVICE_NAME@/version";

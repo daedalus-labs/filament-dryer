@@ -41,6 +41,14 @@ if(NOT DEFINED DHT_DATA_PIN)
     set(DHT_DATA_PIN 18)
 endif()
 
+if(NOT DEFINED HEATER_FEEDBACK_PIN)
+    set(HEATER_FEEDBACK_PIN 21)
+endif()
+
+if(NOT DEFINED HEATER_CONTROL_PIN)
+    set(HEATER_CONTROL_PIN 22)
+endif()
+
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/configuration.hpp.in
     ${CMAKE_BINARY_DIR}/generated/configuration.hpp
@@ -74,6 +82,8 @@ target_sources(
         src/connectivity/mqtt/client.cpp
         src/connectivity/wireless/connection-status.cpp
         src/connectivity/wireless/wifi-connection.cpp
+
+        src/controllers/heater.cpp
 
         src/sensors/board.cpp
         src/sensors/dht.cpp
