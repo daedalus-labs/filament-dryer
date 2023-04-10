@@ -7,7 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "connectivity/constants.hpp"
 #include "connectivity/dns/resolver.hpp"
-#include "mqtt/detail/context.hpp"
+#include "connectivity/mqtt/detail/context.hpp"
 
 #include <lwip/apps/mqtt.h>
 #include <pico/cyw43_arch.h>

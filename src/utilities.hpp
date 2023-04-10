@@ -20,6 +20,11 @@ inline constexpr float C_TO_F_OFFSET = 32.0;
 uint64_t microseconds();
 
 /**
+ * @return The milliseconds since boot.
+ */
+uint64_t milliseconds();
+
+/**
  * Waits on the to become @a desired_state.
  *
  * Will timeout after @a wait_length, and return false.
