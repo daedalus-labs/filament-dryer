@@ -42,7 +42,6 @@ inline constexpr uint8_t SYSTEM_LED_PIN = @SYSTEM_LED_PIN@;
 
 inline constexpr std::string_view PROGRAM_TOPIC = "@DEVICE_NAME@";
 inline constexpr std::string_view VERSION_TOPIC = "@DEVICE_NAME@/version";
-inline constexpr std::string_view START_DATE_TOPIC = "@DEVICE_NAME@/start_date";
 inline constexpr std::string_view UID_TOPIC = "@DEVICE_NAME@/uid";
 
 // clang-format on
