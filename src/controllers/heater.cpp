@@ -21,8 +21,8 @@ Heater::Heater(uint8_t control_pin, uint8_t feedback_pin, float hysteresis, uint
       _control_pin(control_pin),
       _hysteresis(hysteresis),
       _target_temperature(DEFAULT_TEMPERATURE),
-      _on_time(),
-      _off_time()
+      _on_timepoint(),
+      _off_timepoint()
 {
     // Hysteresis must be positive in order to prevent the controller from latching into one state.
     if (_hysteresis < MINIMUM_HYSTERESIS) {
@@ -38,18 +38,9 @@ bool Heater::isOn() const
     return gpio_get(_control_pin);
 }
 
-void Heater::setActualTemperature(float actual_temperature)
+float Heater::targetTemperature() const
 {
-    float off_threshold = _target_temperature + _hysteresis;
-    float on_threshold = _target_temperature - _hysteresis;
-    bool is_on = isOn();
-
-    if (is_on && (actual_temperature > off_threshold)) {
-        _off();
-    }
-    else if (!is_on && (actual_temperature < on_threshold)) {
-        _on();
-    }
+    return _target_temperature;
 }
 
 void Heater::setTargetTemperature(float target_temperature)
@@ -58,24 +49,50 @@ void Heater::setTargetTemperature(float target_temperature)
         printf("Target temperature of %.1fC must be greater than %.1fC\n", target_temperature, MINIMUM_TARGET_TEMPERATURE);
         return;
     }
+
+    if (_target_temperature == target_temperature) {
+        printf("Heater already has target temperature of %.1fC\n", target_temperature);
+        return;
+    }
+
+    printf("Heater has new target temperature of %.1fC\n", target_temperature);
     _target_temperature = target_temperature;
+}
+
+void Heater::update(float actual_temperature)
+{
+    float off_threshold = _target_temperature + _hysteresis;
+    float on_threshold = _target_temperature - _hysteresis;
+    bool is_on = isOn();
+    uint64_t current_timepoint = milliseconds();
+
+    if (is_on && ((actual_temperature > off_threshold) || (current_timepoint - _on_timepoint > _max_on_time))) {
+        _off();
+    }
+    else if (!is_on && (actual_temperature < on_threshold)) {
+        _on();
+    }
 }
 
 void Heater::_off()
 {
-    _off_time = milliseconds();
+    _off_timepoint = milliseconds();
+
+    printf("Turning off Heater...\n");
     gpio_put(_control_pin, OFF);
     gpio_put(_feedback_pin, OFF);
 }
 
 void Heater::_on()
 {
-    uint64_t current_time = milliseconds();
-    if (current_time - _off_time < MINIMUM_OFF_TIME_MS) {
+    uint64_t current_timepoint = milliseconds();
+    if (current_timepoint - _off_timepoint < MINIMUM_OFF_TIME_MS) {
         printf("Cannot enable heater, has not been off for %u milliseconds\n", MINIMUM_OFF_TIME_MS);
         return;
     }
-    _on_time = current_time;
+
+    printf("Turning on Heater...\n");
+    _on_timepoint = current_timepoint;
     gpio_put(_control_pin, ON);
     gpio_put(_feedback_pin, ON);
 }

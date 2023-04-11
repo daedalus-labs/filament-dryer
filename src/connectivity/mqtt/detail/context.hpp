@@ -50,9 +50,11 @@ public:
     }
 
 private:
-    Context();
+    Context()
+    {}
 
-    void _push();
+    void _push()
+    {}
 
     std::string _pending_topic;
     std::vector<uint8_t> _buffer;

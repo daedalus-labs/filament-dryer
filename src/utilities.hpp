@@ -24,6 +24,8 @@ uint64_t microseconds();
  */
 uint64_t milliseconds();
 
+uint64_t systemIdentifier();
+
 /**
  * Waits on the to become @a desired_state.
  *

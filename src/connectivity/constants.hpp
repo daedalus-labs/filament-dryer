@@ -4,6 +4,8 @@ SPDX-License-Identifier: BSD-3-Clause
 ------------------------------------------------------------------------------*/
 #pragma once
 
+#include "gpio.hpp"
+
 #include <cstdint>
 #include <string_view>
 

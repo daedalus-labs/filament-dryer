@@ -23,8 +23,15 @@ enum class QoS : uint8_t
 class Client
 {
 public:
-    Client(std::string_view broker, uint16_t port, std::string_view client_name);
-    Client(std::string_view broker, uint16_t port, std::string_view client_name, std::string_view user, std::string_view password);
+    Client(std::string_view broker, uint16_t port, std::string_view client_name, uint8_t led_pin);
+
+    Client(std::string_view broker,
+           uint16_t port,
+           std::string_view client_name,
+           std::string_view user,
+           std::string_view password,
+           uint8_t led_pin);
+
     ~Client();
 
     bool connect();
@@ -34,7 +41,10 @@ public:
     bool subscribe(std::string_view topic);
 
 private:
+    void _onConnectionStatusChanged(mqtt_connection_status_t status);
+
     mqtt_client_t* _mqtt;
+    uint8_t _led_pin;
     std::string _broker;
     uint16_t _port;
     ip_addr_t _broker_address;
