@@ -9,6 +9,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <pico/types.h>
 
 #include <cstdint>
+#include <vector>
 
 
 inline constexpr float C_TO_F_SCALE = 9.0 / 5.0;

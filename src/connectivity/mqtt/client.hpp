@@ -4,6 +4,8 @@ SPDX-License-Identifier: BSD-3-Clause
 ------------------------------------------------------------------------------*/
 #pragma once
 
+#include "connectivity/mqtt/common.hpp"
+
 #include <lwip/apps/mqtt.h>
 #include <lwip/ip_addr.h>
 
@@ -38,9 +40,11 @@ public:
     bool connected() const;
     bool disconnect();
     bool publish(std::string_view topic, const void* payload, uint16_t size, QoS qos, bool retain);
-    bool subscribe(std::string_view topic);
+    bool subscribe(std::string_view topic, TopicCallback callback);
+    bool unsubscribe(std::string_view topic);
 
 private:
+    void _init();
     void _onConnectionStatusChanged(mqtt_connection_status_t status);
 
     mqtt_client_t* _mqtt;

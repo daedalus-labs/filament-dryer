@@ -14,6 +14,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include <cstdint>
 #include <cstdio>
+#include <functional>
 
 
 /**
@@ -25,8 +26,10 @@ SPDX-License-Identifier: BSD-3-Clause
  * @param[in] arg Additional data passed to the callback.
  * @param[in] status The connection status.
  */
-static void onConnectionComplete(mqtt_client_t* client, void* arg, mqtt_connection_status_t status)
-{}
+static void onConnectionComplete(mqtt_client_t* /* unused */, void* /* unused */, mqtt_connection_status_t status)
+{
+    mqtt::detail::context().onConnectionStatusChanged(status);
+}
 
 /**
  * Callback for handling incoming message data.
@@ -39,9 +42,9 @@ static void onConnectionComplete(mqtt_client_t* client, void* arg, mqtt_connecti
  * @param[in] length The length of the fragment of message data.
  * @param[in] flags Any MQTT flags set by the caller.
  */
-static void onDataReceived(void* arg, const u8_t* data, u16_t length, u8_t flags)
+static void onDataReceived(void* /* unused */, const u8_t* data, u16_t length, u8_t flags)
 {
-    printf("Data received: %u bytes (flags: %u)\n", length, flags);
+    mqtt::detail::context().addPendingData(data, length);
 }
 
 /**
@@ -53,10 +56,9 @@ static void onDataReceived(void* arg, const u8_t* data, u16_t length, u8_t flags
  * @param[in] topic The topic name.
  * @param[in] total_length The total length of the data published at @a topic.
  */
-static void onTopicUpdated(void* arg, const char* topic, u32_t total_length)
+static void onTopicUpdated(void* /* unused */, const char* topic, u32_t total_length)
 {
-    printf("Subscribed topic received: %s (length: %u)\n", topic, total_length);
-    mqtt::detail::Context::context().setPendingTopic(topic, total_length);
+    mqtt::detail::context().setPendingTopic(topic, total_length);
 }
 
 /**
@@ -100,11 +102,7 @@ Client::Client(std::string_view broker, uint16_t port, std::string_view client_n
     _info.tls_config = NULL;
 #endif
 
-    if (_led_pin < NUM_BANK0_GPIOS) {
-        gpio_init(_led_pin);
-        gpio_set_dir(_led_pin, GPIO_OUT);
-        gpio_put(_led_pin, LOW);
-    }
+    _init();
 }
 
 Client::Client(std::string_view broker,
@@ -135,16 +133,11 @@ Client::Client(std::string_view broker,
     _info.tls_config = NULL;
 #endif
 
-    if (_led_pin < NUM_BANK0_GPIOS) {
-        gpio_init(_led_pin);
-        gpio_set_dir(_led_pin, GPIO_OUT);
-        gpio_put(_led_pin, LOW);
-    }
+    _init();
 }
 
 Client::~Client()
 {
-    // Can I disconnect twice safely? Can I check if I'm connected?
     cyw43_arch_lwip_begin();
     mqtt_disconnect(_mqtt);
     mqtt_client_free(_mqtt);
@@ -201,9 +194,31 @@ bool Client::publish(std::string_view topic, const void* payload, uint16_t size,
     return true;
 }
 
-bool Client::subscribe(std::string_view topic)
+bool Client::subscribe(std::string_view topic, TopicCallback callback)
 {
-    return false;
+    uint8_t qos_value = static_cast<uint8_t>(QoS::AT_LEAST_ONCE);
+    detail::context().subscribe(topic, callback);
+    err_t error = mqtt_subscribe(_mqtt, topic.data(), qos_value, onRequestComplete, NULL);
+    return error == ERR_OK;
+}
+
+bool Client::unsubscribe(std::string_view topic)
+{
+    detail::context().unsubscribe(topic);
+    err_t error = mqtt_unsubscribe(_mqtt, topic.data(), onRequestComplete, NULL);
+    return error == ERR_OK;
+}
+
+void Client::_init()
+{
+    if (_led_pin < NUM_BANK0_GPIOS) {
+        gpio_init(_led_pin);
+        gpio_set_dir(_led_pin, GPIO_OUT);
+        gpio_put(_led_pin, LOW);
+    }
+
+    auto status_callback = std::bind(&Client::_onConnectionStatusChanged, this, std::placeholders::_1);
+    detail::context().setConnectionStatusCallback(status_callback);
 }
 
 void Client::_onConnectionStatusChanged(mqtt_connection_status_t status)
