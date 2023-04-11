@@ -83,6 +83,7 @@ target_sources(
     ${PROJECT_NAME}
     PRIVATE
         src/connectivity/dns/resolver.cpp
+        src/connectivity/mqtt/detail/context.cpp
         src/connectivity/mqtt/client.cpp
         src/connectivity/wireless/connection-status.cpp
         src/connectivity/wireless/wifi-connection.cpp

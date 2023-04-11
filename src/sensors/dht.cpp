@@ -41,7 +41,7 @@ DHT::DHT(DHTType type, uint8_t data_pin, uint8_t feedback_led_pin)
         gpio_put(_feedback_led_pin, LOW);
     }
     else {
-        printf("Feedback disabled, LED PIN %u is invalid\n", _feedback_led_pin);
+        printf("DHT Feedback disabled, LED PIN %u is invalid\n", _feedback_led_pin);
     }
 
     gpio_init(_data_pin);

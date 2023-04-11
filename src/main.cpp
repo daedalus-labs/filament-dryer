@@ -18,8 +18,10 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <pico/stdlib.h>
 #include <pico/util/queue.h>
 
+#include <cerrno>
 #include <cstdint>
 #include <cstdio>
+#include <functional>
 
 
 inline constexpr float HEATER_HYSTERESIS = 5.0f;
@@ -84,13 +86,77 @@ feedback_entry getMostRecentData()
     return data;
 }
 
-void initialize()
+static void publish(mqtt::Client& client, const feedback_entry& data)
+{
+    std::string board_temperature = std::to_string(data.board_temperature);
+    std::string container_temperature = std::to_string(data.container_temperature);
+    std::string container_humidity = std::to_string(data.container_humidity);
+    std::string target_temperature = std::to_string(data.target_temperature);
+
+    mqtt::publish(client, BOARD_TEMPERATURE_TOPIC, board_temperature);
+    mqtt::publish(client, HUMIDITY_TOPIC, container_humidity);
+    mqtt::publish(client, TEMPERATURE_TOPIC, container_temperature);
+    mqtt::publish(client, HEATER_TOPIC, static_cast<uint32_t>(data.heater_on));
+    mqtt::publish(client, TARGET_TEMPERATURE_TOPIC, target_temperature);
+}
+
+static void initialize()
 {
     stdio_init_all();
     adc_init();
 
     queue_init(&feedback_queue, sizeof(feedback_entry), QUEUE_SIZE);
     queue_init(&request_queue, sizeof(request_entry), QUEUE_SIZE);
+
+    gpio_init(SYSTEM_LED_PIN);
+    gpio_set_dir(SYSTEM_LED_PIN, GPIO_OUT);
+    gpio_put(SYSTEM_LED_PIN, ON);
+}
+
+static void onSetTargetTemperatureReceived(const std::string& topic, const mqtt::Buffer& data)
+{
+    errno = 0;
+    request_entry set_request;
+    std::string value = mqtt::toString(data);
+    set_request.target_temperature = strtof(value.c_str(), NULL);
+
+    if (errno) {
+        printf("Failed to handle %s: %u\n", topic.c_str(), errno);
+        return;
+    }
+
+    printf("Received request to set target temperature to %.1fC\n", set_request.target_temperature);
+    queue_add_blocking(&request_queue, &set_request);
+}
+
+static bool initialize_mqtt(mqtt::Client& client, uint64_t board_id)
+{
+    if (!mqtt::initialize(client, board_id)) {
+        printf("Failed to initialize MQTT\n");
+        return false;
+    }
+
+    if (!client.subscribe(SET_TARGET_TEMPERATURE_TOPIC, onSetTargetTemperatureReceived)) {
+        printf("Failed to subscribe to %s\n", SET_TARGET_TEMPERATURE_TOPIC.data());
+        return false;
+    }
+
+    printf("Successfully initialized MQTT\n");
+    return true;
+}
+
+int main(int argc, char** argv)
+{
+    initialize();
+
+    uint64_t board_id = systemIdentifier();
+    uint32_t count = 0;
+    bool mqtt_initialized = false;
+
+    WifiConnection wifi(SSID, PASSPHRASE);
+    mqtt::Client mqtt(MQTT_BROKER, CONFIGURED_MQTT_PORT, DEVICE_NAME);
+    DHT sensor(DHTType::DHT22, DHT_DATA_PIN, DHT_FEEDBACK_PIN);
+    sensors::Board board;
 
     gpio_init(SYSTEM_LED_PIN);
     gpio_set_dir(SYSTEM_LED_PIN, GPIO_OUT);
@@ -121,12 +187,13 @@ int main(int argc, char** argv)
 
         if (!mqtt_initialized) {
             printf("Initializing MQTT...\n");
-            mqtt_initialized = mqtt::initialize(mqtt, board_id);
+            mqtt_initialized = initialize_mqtt(mqtt, board_id);
             sleep_ms(COMMUNICATION_PERIOD_MS);
             continue;
         }
 
         feedback_entry data = getMostRecentData();
+        publish(mqtt, data);
 
         printf("\n----------------- [%u]\n", count);
 
