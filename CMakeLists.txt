@@ -49,6 +49,10 @@ if(NOT DEFINED HEATER_CONTROL_PIN)
     set(HEATER_CONTROL_PIN 22)
 endif()
 
+if(NOT DEFINED SYSTEM_LED_PIN)
+    set(SYSTEM_LED_PIN 22)
+endif()
+
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/configuration.hpp.in
     ${CMAKE_BINARY_DIR}/generated/configuration.hpp

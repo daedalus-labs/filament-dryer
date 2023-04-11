@@ -84,13 +84,22 @@ feedback_entry getMostRecentData()
     return data;
 }
 
-int main(int argc, char** argv)
+void initialize()
 {
     stdio_init_all();
     adc_init();
 
     queue_init(&feedback_queue, sizeof(feedback_entry), QUEUE_SIZE);
     queue_init(&request_queue, sizeof(request_entry), QUEUE_SIZE);
+
+    gpio_init(SYSTEM_LED_PIN);
+    gpio_set_dir(SYSTEM_LED_PIN, GPIO_OUT);
+    gpio_put(SYSTEM_LED_PIN, ON);
+}
+
+int main(int argc, char** argv)
+{
+    initialize();
 
     uint64_t board_id = systemIdentifier();
     uint32_t count = 0;

@@ -29,6 +29,12 @@ Heater::Heater(uint8_t control_pin, uint8_t feedback_pin, float hysteresis, uint
         _hysteresis = MINIMUM_HYSTERESIS;
     }
 
+    if (_feedback_pin < NUM_BANK0_GPIOS) {
+        gpio_init(_feedback_pin);
+        gpio_set_dir(_feedback_pin, GPIO_OUT);
+        gpio_put(_feedback_pin, LOW);
+    }
+
     gpio_init(_control_pin);
     gpio_set_dir(_control_pin, GPIO_OUT);
 }
@@ -80,7 +86,10 @@ void Heater::_off()
 
     printf("Turning off Heater...\n");
     gpio_put(_control_pin, OFF);
-    gpio_put(_feedback_pin, OFF);
+
+    if (_feedback_pin < NUM_BANK0_GPIOS) {
+        gpio_put(_feedback_pin, OFF);
+    }
 }
 
 void Heater::_on()
@@ -94,6 +103,9 @@ void Heater::_on()
     printf("Turning on Heater...\n");
     _on_timepoint = current_timepoint;
     gpio_put(_control_pin, ON);
-    gpio_put(_feedback_pin, ON);
+
+    if (_feedback_pin < NUM_BANK0_GPIOS) {
+        gpio_put(_feedback_pin, ON);
+    }
 }
 } // namespace controllers

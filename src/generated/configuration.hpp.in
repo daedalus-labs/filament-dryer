@@ -36,6 +36,9 @@ inline constexpr uint8_t HEATER_FEEDBACK_PIN = @HEATER_FEEDBACK_PIN@;
 /** GPIO Pin for the Heater control */
 inline constexpr uint8_t HEATER_CONTROL_PIN = @HEATER_CONTROL_PIN@;
 
+/** GPIO Pin for the System LED */
+inline constexpr uint8_t SYSTEM_LED_PIN = @SYSTEM_LED_PIN@;
+
 
 inline constexpr std::string_view PROGRAM_TOPIC = "@DEVICE_NAME@";
 inline constexpr std::string_view VERSION_TOPIC = "@DEVICE_NAME@/version";
