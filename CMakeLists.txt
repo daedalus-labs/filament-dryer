@@ -103,6 +103,7 @@ target_link_libraries(
     pico_lwip_mqtt
     pico_multicore
     pico_stdlib
+    pico_unique_id
     hardware_adc
 )
 

@@ -9,6 +9,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <pico/types.h>
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 
@@ -25,7 +26,7 @@ uint64_t microseconds();
  */
 uint64_t milliseconds();
 
-uint64_t systemIdentifier();
+std::string systemIdentifier();
 
 /**
  * Waits on the to become @a desired_state.

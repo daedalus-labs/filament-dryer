@@ -14,14 +14,14 @@ SPDX-License-Identifier: BSD-3-Clause
 
 
 namespace mqtt {
-static bool initialize(Client& client, uint64_t uid)
+static bool initialize(Client& client, const std::string& uid)
 {
     if (!client.publish(VERSION_TOPIC, static_cast<const void*>(VERSION.data()), VERSION.size(), mqtt::QoS::EXACTLY_ONCE, true)) {
         printf("Failed to publish %s\n", VERSION_TOPIC.data());
         return false;
     }
 
-    if (!client.publish(UID_TOPIC, static_cast<const void*>(&uid), sizeof(uint64_t), mqtt::QoS::EXACTLY_ONCE, true)) {
+    if (!client.publish(UID_TOPIC, static_cast<const void*>(uid.c_str()), uid.size(), mqtt::QoS::EXACTLY_ONCE, true)) {
         printf("Failed to publish %s\n", UID_TOPIC.data());
         return false;
     }
