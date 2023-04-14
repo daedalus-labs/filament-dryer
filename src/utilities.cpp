@@ -13,7 +13,10 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <pico/unique_id.h>
 
 #include <cstdint>
+#include <cstring>
 
+
+inline constexpr size_t UID_SIZE = 2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1;
 
 uint64_t microseconds()
 {
@@ -25,17 +28,11 @@ uint64_t milliseconds()
     return to_us_since_boot(get_absolute_time()) / 1000;
 }
 
-uint64_t systemIdentifier()
+std::string systemIdentifier()
 {
-    pico_unique_board_id_t board_id;
-    pico_get_unique_board_id(&board_id);
-
-    uint64_t uid = 0;
-    for (size_t i = 0; i < PICO_UNIQUE_BOARD_ID_SIZE_BYTES; i++) {
-        uid <<= BITS_IN_BYTE;
-        uid |= board_id.id[i];
-    }
-
+    char uid[UID_SIZE];
+    std::memset(uid, 0, UID_SIZE);
+    pico_get_unique_board_id_string(uid, UID_SIZE);
     return uid;
 }
 

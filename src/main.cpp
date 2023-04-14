@@ -16,6 +16,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <pico/multicore.h>
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
+#include <pico/unique_id.h>
 #include <pico/util/queue.h>
 
 #include <cerrno>
@@ -24,7 +25,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <functional>
 
 
-inline constexpr float HEATER_HYSTERESIS = 5.0f;
+inline constexpr float HEATER_HYSTERESIS = 2.5f;
 inline constexpr uint64_t HEATER_MAX_ON_TIME_MS = 10 * 60 * 1000;
 inline constexpr uint32_t DATA_PERIOD_MS = 10000;
 inline constexpr uint32_t COMMUNICATION_PERIOD_MS = 10000;
@@ -129,7 +130,7 @@ static void onSetTargetTemperatureReceived(const std::string& topic, const mqtt:
     queue_add_blocking(&request_queue, &set_request);
 }
 
-static bool initialize_mqtt(mqtt::Client& client, uint64_t board_id)
+static bool initialize_mqtt(mqtt::Client& client, const std::string& board_id)
 {
     if (!mqtt::initialize(client, board_id)) {
         printf("Failed to initialize MQTT\n");
@@ -148,8 +149,7 @@ static bool initialize_mqtt(mqtt::Client& client, uint64_t board_id)
 int main(int argc, char** argv)
 {
     initialize();
-
-    uint64_t board_id = systemIdentifier();
+    std::string board_id = systemIdentifier();
     uint32_t count = 0;
     bool mqtt_initialized = false;
 

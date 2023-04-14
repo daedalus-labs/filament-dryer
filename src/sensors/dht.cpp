@@ -194,8 +194,6 @@ void DHT::_start()
      * Although some of the reference integration code provided by Waveshare show holding the data line low for longer.
      * Basic flow here is to pull down the data line for 20 milliseconds then high for 20-40 microseconds.
      */
-    printf("Starting read on DHT sensor connected to pin %lu\n", _data_pin);
-
     gpio_set_dir(_data_pin, GPIO_OUT);
     gpio_put(_data_pin, LOW);
     sleep_ms(READ_REQUEST_LOW_TIME_MS);
