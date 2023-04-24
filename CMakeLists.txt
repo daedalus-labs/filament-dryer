@@ -29,16 +29,28 @@ if(NOT DEFINED MQTT_PORT)
     set(MQTT_PORT 1883)
 endif()
 
+if(NOT DEFINED DHT_FEEDBACK_PIN)
+    set(DHT_FEEDBACK_PIN 254)   # DISABLED
+endif()
+
+if(NOT DEFINED DHT_DATA_PIN)
+    set(DHT_DATA_PIN 17)
+endif()
+
+if(NOT DEFINED HEATER_CONTROL_PIN)
+    set(HEATER_CONTROL_PIN 19)
+endif()
+
+if(NOT DEFINED SYSTEM_LED_PIN)
+    set(SYSTEM_LED_PIN 13)
+endif()
+
 if(NOT DEFINED MQTT_FEEDBACK_PIN)
     set(MQTT_FEEDBACK_PIN 14)
 endif()
 
-if(NOT DEFINED DHT_FEEDBACK_PIN)
-    set(DHT_FEEDBACK_PIN 13)
-endif()
-
-if(NOT DEFINED DHT_DATA_PIN)
-    set(DHT_DATA_PIN 18)
+if(NOT DEFINED HEATER_FEEDBACK_PIN)
+    set(HEATER_FEEDBACK_PIN 15)
 endif()
 
 configure_file(
@@ -75,6 +87,8 @@ target_sources(
         src/connectivity/wireless/connection-status.cpp
         src/connectivity/wireless/wifi-connection.cpp
 
+        src/controllers/heater.cpp
+
         src/sensors/board.cpp
         src/sensors/dht.cpp
 
@@ -86,6 +100,7 @@ target_link_libraries(
     ${PROJECT_NAME}
     pico_cyw43_arch_lwip_threadsafe_background
     pico_lwip_mqtt
+    pico_multicore
     pico_stdlib
     hardware_adc
 )

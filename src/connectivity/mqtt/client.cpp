@@ -7,6 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "connectivity/constants.hpp"
 #include "connectivity/dns/resolver.hpp"
+#include "connectivity/mqtt/detail/context.hpp"
 
 #include <lwip/apps/mqtt.h>
 #include <pico/cyw43_arch.h>
@@ -25,9 +26,7 @@ SPDX-License-Identifier: BSD-3-Clause
  * @param[in] status The connection status.
  */
 static void onConnectionComplete(mqtt_client_t* client, void* arg, mqtt_connection_status_t status)
-{
-    printf("Connection Status: %d\n", static_cast<int32_t>(status));
-}
+{}
 
 /**
  * Callback for handling incoming message data.
@@ -42,8 +41,7 @@ static void onConnectionComplete(mqtt_client_t* client, void* arg, mqtt_connecti
  */
 static void onDataReceived(void* arg, const u8_t* data, u16_t length, u8_t flags)
 {
-    // This function is intentionally empty
-    //  - It is being left as a skeleton for future use.
+    printf("Data received: %u bytes (flags: %u)\n", length, flags);
 }
 
 /**
@@ -57,8 +55,8 @@ static void onDataReceived(void* arg, const u8_t* data, u16_t length, u8_t flags
  */
 static void onTopicUpdated(void* arg, const char* topic, u32_t total_length)
 {
-    // This function is intentionally empty
-    //  - It is being left as a skeleton for future use.
+    printf("Subscribed topic received: %s (length: %u)\n", topic, total_length);
+    mqtt::detail::Context::context().setPendingTopic(topic, total_length);
 }
 
 /**
@@ -79,8 +77,16 @@ static void onRequestComplete(void* arg, err_t error)
 namespace mqtt {
 inline constexpr uint32_t DNS_TIMEOUT_MS = 10000;
 
-Client::Client(std::string_view broker, uint16_t port, std::string_view client_name)
-    : _mqtt(mqtt_client_new()), _broker(broker), _port(port), _broker_address(), _name(client_name), _user(), _password(), _info()
+Client::Client(std::string_view broker, uint16_t port, std::string_view client_name, uint8_t led_pin)
+    : _mqtt(mqtt_client_new()),
+      _led_pin(led_pin),
+      _broker(broker),
+      _port(port),
+      _broker_address(),
+      _name(client_name),
+      _user(),
+      _password(),
+      _info()
 {
     _info.client_id = _name.c_str();
     _info.client_pass = NULL;
@@ -93,10 +99,22 @@ Client::Client(std::string_view broker, uint16_t port, std::string_view client_n
 #if LWIP_ALTCP && LWIP_ALTCP_TLS
     _info.tls_config = NULL;
 #endif
+
+    if (_led_pin < NUM_BANK0_GPIOS) {
+        gpio_init(_led_pin);
+        gpio_set_dir(_led_pin, GPIO_OUT);
+        gpio_put(_led_pin, LOW);
+    }
 }
 
-Client::Client(std::string_view broker, uint16_t port, std::string_view client_name, std::string_view user, std::string_view password)
+Client::Client(std::string_view broker,
+               uint16_t port,
+               std::string_view client_name,
+               std::string_view user,
+               std::string_view password,
+               uint8_t led_pin)
     : _mqtt(mqtt_client_new()),
+      _led_pin(led_pin),
       _broker(broker),
       _port(port),
       _broker_address(),
@@ -116,6 +134,12 @@ Client::Client(std::string_view broker, uint16_t port, std::string_view client_n
 #if LWIP_ALTCP && LWIP_ALTCP_TLS
     _info.tls_config = NULL;
 #endif
+
+    if (_led_pin < NUM_BANK0_GPIOS) {
+        gpio_init(_led_pin);
+        gpio_set_dir(_led_pin, GPIO_OUT);
+        gpio_put(_led_pin, LOW);
+    }
 }
 
 Client::~Client()
@@ -175,5 +199,26 @@ bool Client::publish(std::string_view topic, const void* payload, uint16_t size,
         return false;
     }
     return true;
+}
+
+bool Client::subscribe(std::string_view topic)
+{
+    return false;
+}
+
+void Client::_onConnectionStatusChanged(mqtt_connection_status_t status)
+{
+    printf("Connection Status: %d\n", static_cast<int32_t>(status));
+
+    if (_led_pin >= NUM_BANK0_GPIOS) {
+        return;
+    }
+
+    if (status == mqtt_connection_status_t::MQTT_CONNECT_ACCEPTED) {
+        gpio_put(_led_pin, ON);
+    }
+    else {
+        gpio_put(_led_pin, OFF);
+    }
 }
 } // namespace mqtt

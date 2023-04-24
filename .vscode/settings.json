@@ -60,6 +60,7 @@
         "INPROGRESS",
         "inpub",
         "MQTT",
+        "multicore",
         "netif",
         "Pico",
         "Pimoroni",
@@ -67,7 +68,8 @@
         "pulished",
         "RASPBERRYPI",
         "SSID",
-        "VREF",
-        "strerr"
+        "strerr",
+        "timepoint",
+        "VREF"
     ]
 }
