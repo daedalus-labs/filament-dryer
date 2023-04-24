@@ -154,24 +154,6 @@ int main(int argc, char** argv)
     bool mqtt_initialized = false;
 
     WifiConnection wifi(SSID, PASSPHRASE);
-    mqtt::Client mqtt(MQTT_BROKER, CONFIGURED_MQTT_PORT, DEVICE_NAME);
-    DHT sensor(DHTType::DHT22, DHT_DATA_PIN, DHT_FEEDBACK_PIN);
-    sensors::Board board;
-
-    gpio_init(SYSTEM_LED_PIN);
-    gpio_set_dir(SYSTEM_LED_PIN, GPIO_OUT);
-    gpio_put(SYSTEM_LED_PIN, ON);
-}
-
-int main(int argc, char** argv)
-{
-    initialize();
-
-    uint64_t board_id = systemIdentifier();
-    uint32_t count = 0;
-    bool mqtt_initialized = false;
-
-    WifiConnection wifi(SSID, PASSPHRASE);
     mqtt::Client mqtt(MQTT_BROKER, CONFIGURED_MQTT_PORT, DEVICE_NAME, MQTT_FEEDBACK_PIN);
 
     multicore_launch_core1(controlLoop);
