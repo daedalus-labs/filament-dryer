@@ -52,7 +52,17 @@
         "typeinfo": "cpp",
         "*.in": "cpp",
         "fstream": "cpp",
-        "istream": "cpp"
+        "istream": "cpp",
+        "hash_map": "cpp",
+        "strstream": "cpp",
+        "complex": "cpp",
+        "cstring": "cpp",
+        "list": "cpp",
+        "iomanip": "cpp",
+        "iostream": "cpp",
+        "numbers": "cpp",
+        "sstream": "cpp",
+        "cfenv": "cpp"
     },
     "cSpell.words": [
         "ALTCP",

@@ -26,6 +26,9 @@ uint64_t microseconds();
  */
 uint64_t milliseconds();
 
+/**
+ * @return The unique identifier of this system.
+ */
 std::string systemIdentifier();
 
 /**
