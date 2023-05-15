@@ -33,3 +33,7 @@
 
 # Project Directories
 build/*
+
+# FreeCAD
+*.fcstd1
+*.FCStd1
