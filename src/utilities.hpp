@@ -9,6 +9,8 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <pico/types.h>
 
 #include <cstdint>
+#include <string>
+#include <vector>
 
 
 inline constexpr float C_TO_F_SCALE = 9.0 / 5.0;
@@ -24,7 +26,10 @@ uint64_t microseconds();
  */
 uint64_t milliseconds();
 
-uint64_t systemIdentifier();
+/**
+ * @return The unique identifier of this system.
+ */
+std::string systemIdentifier();
 
 /**
  * Waits on the to become @a desired_state.
