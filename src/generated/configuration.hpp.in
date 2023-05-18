@@ -3,12 +3,6 @@
 
 #include <string_view>
 
-/** Wireless SSID (Pico W) */
-inline constexpr std::string_view SSID = "@WIRELESS_SSID@";
-
-/** Wireless Passphrase (Pico W) */
-inline constexpr std::string_view PASSPHRASE = "@WIRELESS_PASSPHRASE@";
-
 /** IPv4 Address of the device receiving the data (Pico W) */
 inline constexpr std::string_view MQTT_BROKER = "@MQTT_BROKER@";
 
