@@ -40,6 +40,7 @@ CONFIGURATION_FILE : str = 'build/picocfg.bin'
 PICOTOOL_COMMAND : str = 'picotool'
 LOAD_OPTION : str = 'load'
 OFFSET_OPTION : str = '--offset'
+FORCE_OPTION : str = '-f'
 
 def writeConfigurationItem(value : str, first_write : bool = False):
     option = 'ab'
@@ -50,9 +51,11 @@ def writeConfigurationItem(value : str, first_write : bool = False):
         valueBytes = bytearray(value, encoding='utf-8')
         valueLength = len(value)
         configuration_file.write(valueBytes)
-        configuration_file.write(valueLength.to_bytes(4, 'big'))
+        configuration_file.write(valueLength.to_bytes(4, 'little'))
         print('Wrote {} ({} bytes)'.format(value, valueLength))
-        return valueLength
+        
+        # Adding 4 to account for the 4 byte length
+        return valueLength + 4
 
 if __name__ == '__main__':
     # First step here is to parse the arguments.
@@ -75,15 +78,16 @@ if __name__ == '__main__':
     totalLength = writeConfigurationItem(args.ssid, True)
     totalLength += writeConfigurationItem(args.passphrase)
     with open(CONFIGURATION_FILE, 'ab') as configuration_file:
-        configuration_file.write(totalLength.to_bytes(4, 'big'))
+        configuration_file.write(totalLength.to_bytes(4, 'little'))
+        totalLength += 4
     print('Created {} ({} bytes)'.format(CONFIGURATION_FILE, totalLength))
-    
+
     # Final step is to use picotool to load the configuration file
     # at the very end of the flash memory of the Pico.
     offset = PICO_TOTAL_MEMORY_BYTES - totalLength
     offsetStr = ('0x{0:8x}').format(offset)
     print('Writing {} to pico @ {}'.format(CONFIGURATION_FILE, offsetStr))
     picoload_command = [
-        PICOTOOL_COMMAND, LOAD_OPTION, CONFIGURATION_FILE, OFFSET_OPTION, offsetStr
+        PICOTOOL_COMMAND, LOAD_OPTION, FORCE_OPTION, CONFIGURATION_FILE, OFFSET_OPTION, offsetStr
     ]
     subprocess.call(picoload_command)

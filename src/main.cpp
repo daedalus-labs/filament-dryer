@@ -153,10 +153,14 @@ int main(int argc, char** argv)
     uint32_t count = 0;
     bool mqtt_initialized = false;
 
+    sleep_ms(5000);
     SystemConfiguration cfg;
     if (!read(cfg)) {
         printf("Failed to read system configuration\n");
-        return EXIT_FAILURE;
+        // return EXIT_FAILURE;
+    }
+    else {
+        printf("Read SSID: %s, Passphrase: %s\n", cfg.ssid().c_str(), cfg.passphrase().c_str());
     }
 
     WifiConnection wifi(cfg.ssid(), cfg.passphrase());

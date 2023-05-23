@@ -24,12 +24,11 @@ inline constexpr size_t STRING_MAX_SIZE = 256;
 
 static int32_t consumeString(const uint8_t* memory_contents, std::string& data)
 {
-    data.clear();
     int32_t bytes_consumed = 0;
 
     // A string in memory is encoded as: ASCII string contents followed by a 4-byte string length
     // The first step is to shift the pointer back by 4-bytes.
-    const uint8_t* length_location = memory_contents - sizeof(uint32_t);
+    const uint8_t* length_location = memory_contents;
     uint32_t string_length = *((uint32_t*)length_location);
     bytes_consumed += sizeof(uint32_t);
     if (string_length > STRING_MAX_SIZE) {
@@ -43,8 +42,10 @@ static int32_t consumeString(const uint8_t* memory_contents, std::string& data)
 
     // The read process will need to "rewind" from the current position
     // to the head of the string, which is string_length bytes ahead
-    const uint8_t* string_location = memory_contents + (string_length + sizeof(uint32_t));
-    data.assign((const char*)(string_location), string_length);
+    const char* string_location =
+        (const char*)(memory_contents - (string_length + sizeof(uint32_t))); /** @todo I think the math here is wrong... */
+    printf("String is %u bytes long @ 0x%08x\n", string_length, string_location);
+    data = std::string(string_location, string_length);
     bytes_consumed += string_length;
     return bytes_consumed;
 }
@@ -116,7 +117,6 @@ bool read(SystemConfiguration& cfg)
 
     uint8_t* configuration_contents = (uint8_t*)(XIP_BASE + CONFIGURATION_OFFSET);
     uint32_t total_length = *((uint32_t*)configuration_contents);
-
     if (total_length > CONFIGURATION_MAX_SIZE) {
         printf("Invalid configuration length (%lu)\n", total_length);
         return false;
@@ -129,8 +129,14 @@ bool read(SystemConfiguration& cfg)
 
     // Need to account for the total configuration length consumed
     configuration_contents -= sizeof(uint32_t);
+    // std::vector<uint8_t> configuration(total_length);
+    // for (size_t i = 0; i < total_length; i++, configuration_contents--) {
+    //     configuration[i] = *(configuration_contents);
+    //     printf("%lu: 0x%02X\n", i, configuration[i]);
+    // }
     std::string ssid, passphrase;
     int32_t bytes_consumed = consumeString(configuration_contents, passphrase);
+    printf("Passphrase consumed %d bytes\n", bytes_consumed);
     if (bytes_consumed < 0) {
         printf("Failed to read passphrase from configuration\n");
         return false;
@@ -141,6 +147,7 @@ bool read(SystemConfiguration& cfg)
         printf("Failed to read SSID from configuration\n");
         return false;
     }
+    printf("Passphrase consumed %d bytes", bytes_consumed);
 
     cfg.setSSID(ssid);
     cfg.setPassphrase(passphrase);
