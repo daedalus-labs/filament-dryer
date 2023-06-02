@@ -26,6 +26,8 @@ public:
     const std::string& ssid() const;
 
 private:
+    void _read(const std::vector<uint8_t>& configuration);
+
     std::string _ssid;
     std::string _passphrase;
 };

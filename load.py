@@ -52,8 +52,8 @@ def writeConfigurationItem(value : str, first_write : bool = False):
     with open(CONFIGURATION_FILE, option) as configuration_file:
         valueBytes = bytearray(value, encoding='utf-8')
         valueLength = len(value)
-        configuration_file.write(valueBytes)
         configuration_file.write(valueLength.to_bytes(4, 'little'))
+        configuration_file.write(valueBytes)
         print('Wrote {} ({} bytes)'.format(value, valueLength))
         
         # Adding 4 to account for the 4 byte length
@@ -72,14 +72,13 @@ if __name__ == '__main__':
 
     # Second step is to create the configuration file.
     # Configuration file will be defined as a binary encoded file with the following values written in order:
-    #   SSID
     #   SSID Length (Fixed 4-byte length)
-    #   Passphrase
+    #   SSID
     #   Passphrase Length (Fixed 4-byte length)
+    #   Passphrase
     #   Total Length (Fixed 4-byte length)
     #
-    # This will allow the pico code to pull the configuration length from a fixed location (last 4 bytes in memory) and iterate
-    # backwards through the structure.
+    # This will allow the pico code to pull the configuration length from a fixed location (last 4 bytes in memory).
     totalLength = writeConfigurationItem(args.ssid, True)
     totalLength += writeConfigurationItem(args.passphrase)
     with open(CONFIGURATION_FILE, 'ab') as configuration_file:

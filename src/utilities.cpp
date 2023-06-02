@@ -21,47 +21,37 @@ inline constexpr size_t UID_SIZE = 2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1;
 inline constexpr size_t CONFIGURATION_OFFSET = PICO_FLASH_SIZE_BYTES - sizeof(uint32_t);
 inline constexpr size_t CONFIGURATION_MAX_SIZE = 1024;
 inline constexpr size_t STRING_MAX_SIZE = 256;
+inline constexpr int32_t STRING_IS_TOO_BIG = -1;
 
-static int32_t consumeString(const uint8_t* memory_contents, std::string& data)
+
+static int32_t consumeString(const std::vector<uint8_t>& serialized_data, size_t starting_index, std::string& deserialized_data)
 {
-    int32_t bytes_consumed = 0;
+    uint32_t string_size;
+    std::memcpy(&string_size, &serialized_data[starting_index], sizeof(uint32_t));
+    size_t string_index = starting_index + sizeof(uint32_t);
 
-    // A string in memory is encoded as: ASCII string contents followed by a 4-byte string length
-    // The first step is to shift the pointer back by 4-bytes.
-    const uint8_t* length_location = memory_contents;
-    uint32_t string_length = *((uint32_t*)length_location);
-    bytes_consumed += sizeof(uint32_t);
-    if (string_length > STRING_MAX_SIZE) {
-        printf("Invalid string length (%lu)\n", string_length);
-        return -1;
+    if (string_size > STRING_MAX_SIZE || string_index + string_size > serialized_data.size()) {
+        return STRING_IS_TOO_BIG;
     }
 
-    if (string_length == 0) {
-        return bytes_consumed;
+    // The assumption is only ASCII characters are entered. I doubt this will work for the global use-case,
+    // but right now, it significantly simplifies the code.
+    deserialized_data.resize(string_size);
+    for (uint32_t i = 0; i < string_size; i++) {
+        deserialized_data[i] = static_cast<char>(serialized_data[string_index + i]);
     }
 
-    // The read process will need to "rewind" from the current position
-    // to the head of the string, which is string_length bytes ahead
-    /** @todo I think the math here is wrong... */
-    const char* string_location = (const char*)(memory_contents - string_length);
-    printf("String is %u bytes long @ 0x%08x\n", string_length, string_location);
-    // std::vector<uint8_t> configuration(string_length);
-    // for (size_t i = 0; i < string_length; i++, string_location++) {
-    //     configuration[i] = *(string_location);
-    //     printf("%lu: 0x%02X (%c)\n", i, configuration[i], static_cast<char>(configuration[i]));
-    // }
-    // string_location = (const char*)(memory_contents - string_length);
-    // data = std::string(string_location, string_length);
-    bytes_consumed += string_length;
-    return bytes_consumed;
+    // This cast can be done naively because of the check against STRING_MAX_SIZE
+    return static_cast<int32_t>(string_size);
 }
-
 
 SystemConfiguration::SystemConfiguration() : _ssid(), _passphrase()
 {}
 
 SystemConfiguration::SystemConfiguration(const std::vector<uint8_t>& configuration) : _ssid(), _passphrase()
-{}
+{
+    _read(configuration);
+}
 
 const std::string& SystemConfiguration::passphrase() const
 {
@@ -71,6 +61,28 @@ const std::string& SystemConfiguration::passphrase() const
 const std::string& SystemConfiguration::ssid() const
 {
     return _ssid;
+}
+
+void SystemConfiguration::_read(const std::vector<uint8_t>& configuration)
+{
+    // The order here is paramount.
+    // The configuration file is (in forward order):
+    //   - SSID Length (Fixed 4-byte length)
+    //   - SSID
+    //   - Passphrase Length (Fixed 4-byte length)
+    //   - Passphrase
+    size_t current_index = 0;
+    int32_t offset = consumeString(configuration, current_index, _ssid);
+    current_index += offset;
+    if (offset < 0 || current_index >= configuration.size()) {
+        printf("Failed to read SSID from configuration: %d\n", offset);
+        return;
+    }
+
+    offset = consumeString(configuration, current_index, _passphrase);
+    if (offset < 0) {
+        printf("Failed to read Passphrase from configuration: %d\n", offset);
+    }
 }
 
 uint64_t microseconds()
@@ -106,53 +118,29 @@ bool read(SystemConfiguration& cfg)
 {
     // The order here is paramount.
     // The configuration file is (in forward order):
-    //  - SSID
-    //  - SSID Length (4-byte width)
-    //  - Passphrase
-    //  - Passphrase Length (4-byte width)
-    //  - Total Length (4-byte width)
+    //   - <Configuration Data>
+    //   - Total Configuration Length (Fixed 4-byte length)
     //
-    // This code will read the data backwards, so the values must be read in reverse order.
+    // Meaning the last 4 bytes needs to be read off and some pointer math needs to be done to
+    // grab the configuration data.
+    //
+    // It should be noted that CONFIGURATION_OFFSET already shifts "up" 4-bytes to account for the length.
+    uint8_t* configuration_length_location = (uint8_t*)(XIP_BASE + CONFIGURATION_OFFSET);
+    uint32_t total_length = *((uint32_t*)configuration_length_location);
+    uint8_t* configuration_contents = (uint8_t*)(configuration_length_location - total_length);
 
-    uint8_t* configuration_contents = (uint8_t*)(XIP_BASE + CONFIGURATION_OFFSET);
-    printf("Configuration contents currently @ 0x%08X\n", configuration_contents);
-    uint32_t total_length = *((uint32_t*)configuration_contents);
-    if (total_length > CONFIGURATION_MAX_SIZE) {
-        printf("Invalid configuration length (%lu)\n", total_length);
-        return false;
+    // Rather than consuming in place, the entire chunk of configuration data will be read into
+    // a vector and then passed to the configuration object. Although not very efficient, as memory
+    // is duplicated twice, this does mean the SystemConfiguration class can be responsible for
+    // understanding the configuration contents, and a lot of pointer math is avoided. As of time of
+    // implementation, the configuration data is on the order of 50-60 bytes, so this appears like
+    // a small hit in memory efficiency for a more object-oriented design.
+    printf("Configuration contents are %u bytes @ 0x%08X\n", total_length, configuration_contents);
+    std::vector<uint8_t> configuration(total_length);
+    for (size_t i = 0; i < total_length; i++, configuration_contents++) {
+        configuration[i] = *(configuration_contents);
+        printf("%lu: 0x%02X\n", i, configuration[i]);
     }
-
-    if (total_length == 0) {
-        printf("No configuration file written\n");
-        return true;
-    }
-
-    // Need to account for the total configuration length consumed
-    configuration_contents -= sizeof(uint32_t);
-    printf("Configuration contents currently @ 0x%08X\n", configuration_contents);
-    // std::vector<uint8_t> configuration(total_length);
-    // for (size_t i = 0; i < total_length; i++, configuration_contents--) {
-    //     configuration[i] = *(configuration_contents);
-    //     printf("%lu: 0x%02X\n", i, configuration[i]);
-    // }
-    std::string ssid, passphrase;
-    int32_t bytes_consumed = consumeString(configuration_contents, passphrase);
-    printf("Passphrase (%s) consumed %d bytes\n", passphrase.c_str(), bytes_consumed);
-    if (bytes_consumed < 0) {
-        printf("Failed to read passphrase from configuration\n");
-        return false;
-    }
-
-    configuration_contents -= bytes_consumed;
-    printf("Configuration contents currently @ 0x%08X\n", configuration_contents);
-    bytes_consumed = consumeString(configuration_contents, ssid);
-    // if (bytes_consumed < 0) {
-    //     printf("Failed to read SSID from configuration\n");
-    //     return false;
-    // }
-    printf("SSID (%s) consumed %d byte\ns", ssid.c_str(), bytes_consumed);
-
-    // cfg.setSSID(ssid);
-    // cfg.setPassphrase(passphrase);
+    cfg = SystemConfiguration(configuration);
     return true;
 }
