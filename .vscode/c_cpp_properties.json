@@ -23,6 +23,7 @@
                 "/etc/pico-sdk/src/rp2040/hardware_structs/include/**",
                 "/etc/pico-sdk/src/rp2_common/hardware_adc/include/**",
                 "/etc/pico-sdk/src/rp2_common/hardware_base/include/**",
+                "/etc/pico-sdk/src/rp2_common/hardware_flash/include/**",
                 "/etc/pico-sdk/src/rp2_common/pico_async_context/include/**",
                 "/etc/pico-sdk/src/rp2_common/pico_cyw43_driver/include/**",
                 "/etc/pico-sdk/src/rp2_common/pico_cyw43_arch/include/**",
@@ -41,7 +42,8 @@
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "linux-gcc-arm64",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
     "version": 4

@@ -153,8 +153,15 @@ int main(int argc, char** argv)
     uint32_t count = 0;
     bool mqtt_initialized = false;
 
-    WifiConnection wifi(SSID, PASSPHRASE);
-    mqtt::Client mqtt(MQTT_BROKER, CONFIGURED_MQTT_PORT, DEVICE_NAME, MQTT_FEEDBACK_PIN);
+    sleep_ms(5000);
+    SystemConfiguration cfg;
+    if (!read(cfg)) {
+        printf("Failed to read system configuration\n");
+        return EXIT_FAILURE;
+    }
+
+    WifiConnection wifi(cfg.ssid(), cfg.passphrase());
+    mqtt::Client mqtt(cfg.mqttBroker(), CONFIGURED_MQTT_PORT, cfg.deviceName(), MQTT_FEEDBACK_PIN);
 
     multicore_launch_core1(controlLoop);
 
@@ -192,5 +199,5 @@ int main(int argc, char** argv)
         count++;
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

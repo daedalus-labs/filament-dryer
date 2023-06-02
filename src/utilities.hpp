@@ -17,6 +17,57 @@ inline constexpr float C_TO_F_SCALE = 9.0 / 5.0;
 inline constexpr float C_TO_F_OFFSET = 32.0;
 
 /**
+ * Class encapsulating the configuration data for a device.
+ */
+class SystemConfiguration
+{
+public:
+    /** Constructor */
+    SystemConfiguration();
+
+    /**
+     * Constructor
+     *
+     * @param[in] configuration The configuration data read from flash memory.
+     */
+    SystemConfiguration(const std::vector<uint8_t>& configuration);
+
+    /**
+     * @return The device name to be used for MQTT communication.
+     */
+    const std::string& deviceName() const;
+
+    /**
+     * @note The MQTT Broker can be an IPv4 address or a hostname. This should be passed through a DNS resolver.
+     * @return The MQTT Broker.
+     */
+    const std::string& mqttBroker() const;
+
+    /**
+     * @return The passphrase for the configured wireless network.
+     */
+    const std::string& passphrase() const;
+
+    /**
+     * @return The SSID of the configured wireless network.
+     */
+    const std::string& ssid() const;
+
+private:
+    /**
+     * Helper function to parse @a configuration.
+     *
+     * @param[in] configuration The configuration data read from flash memory.
+     */
+    void _parse(const std::vector<uint8_t>& configuration);
+
+    std::string _ssid;
+    std::string _passphrase;
+    std::string _mqtt_broker;
+    std::string _device_name;
+};
+
+/**
  * @return The microseconds since boot.
  */
 uint64_t microseconds();
@@ -43,6 +94,14 @@ std::string systemIdentifier();
  * @return True if the wait was successful, false otherwise.
  */
 bool wait(uint8_t gpio_pin, bool desired_state, uint64_t wait_length);
+
+/**
+ * Reads the system configuration information from flash memory.
+ *
+ * @param[in] cfg The system configuration information to be read.
+ * @return True if the read was successful, false otherwise.
+ */
+bool read(SystemConfiguration& cfg);
 
 /**
  * Converts a temperature in celsius to its equivalent in fahrenheit.
