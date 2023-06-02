@@ -73,16 +73,6 @@ const std::string& SystemConfiguration::ssid() const
     return _ssid;
 }
 
-void SystemConfiguration::setPassphrase(const std::string& value)
-{
-    _passphrase = value;
-}
-
-void SystemConfiguration::setSSID(const std::string& value)
-{
-    _ssid = value;
-}
-
 uint64_t microseconds()
 {
     return to_us_since_boot(get_absolute_time());
