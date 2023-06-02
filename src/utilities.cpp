@@ -29,28 +29,37 @@ static int32_t consumeString(const std::vector<uint8_t>& serialized_data, size_t
     uint32_t string_size;
     std::memcpy(&string_size, &serialized_data[starting_index], sizeof(uint32_t));
     size_t string_index = starting_index + sizeof(uint32_t);
+    size_t end_index = string_index + string_size;
 
-    if (string_size > STRING_MAX_SIZE || string_index + string_size > serialized_data.size()) {
+    printf("Reading configuration string from index %lu\n", starting_index);
+    if (string_size > STRING_MAX_SIZE || end_index > serialized_data.size()) {
+        printf("Failed to read: [String size: %u, End: %u, data size: %lu]\n", string_size, end_index, serialized_data.size());
         return STRING_IS_TOO_BIG;
     }
 
-    // The assumption is only ASCII characters are entered. I doubt this will work for the global use-case,
-    // but right now, it significantly simplifies the code.
-    deserialized_data.resize(string_size);
-    for (uint32_t i = 0; i < string_size; i++) {
-        deserialized_data[i] = static_cast<char>(serialized_data[string_index + i]);
-    }
-
+    auto string_start = serialized_data.begin() + string_index;
+    auto string_end = serialized_data.begin() + end_index;
+    deserialized_data.assign(string_start, string_end);
     // This cast can be done naively because of the check against STRING_MAX_SIZE
-    return static_cast<int32_t>(string_size);
+    return static_cast<int32_t>(string_size + sizeof(uint32_t));
 }
 
-SystemConfiguration::SystemConfiguration() : _ssid(), _passphrase()
+SystemConfiguration::SystemConfiguration() : _ssid(), _passphrase(), _mqtt_broker(), _device_name()
 {}
 
-SystemConfiguration::SystemConfiguration(const std::vector<uint8_t>& configuration) : _ssid(), _passphrase()
+SystemConfiguration::SystemConfiguration(const std::vector<uint8_t>& configuration) : _ssid(), _passphrase(), _mqtt_broker(), _device_name()
 {
-    _read(configuration);
+    _parse(configuration);
+}
+
+const std::string& SystemConfiguration::deviceName() const
+{
+    return _device_name;
+}
+
+const std::string& SystemConfiguration::mqttBroker() const
+{
+    return _mqtt_broker;
 }
 
 const std::string& SystemConfiguration::passphrase() const
@@ -63,7 +72,7 @@ const std::string& SystemConfiguration::ssid() const
     return _ssid;
 }
 
-void SystemConfiguration::_read(const std::vector<uint8_t>& configuration)
+void SystemConfiguration::_parse(const std::vector<uint8_t>& configuration)
 {
     // The order here is paramount.
     // The configuration file is (in forward order):
@@ -71,17 +80,33 @@ void SystemConfiguration::_read(const std::vector<uint8_t>& configuration)
     //   - SSID
     //   - Passphrase Length (Fixed 4-byte length)
     //   - Passphrase
+    //   - MQTT Broker Length (Fixed 4-byte length)
+    //   - MQTT Broker
+    //   - Device Name Length (Fixed 4-byte length)
+    //   - Device Name
     size_t current_index = 0;
-    int32_t offset = consumeString(configuration, current_index, _ssid);
-    current_index += offset;
-    if (offset < 0 || current_index >= configuration.size()) {
-        printf("Failed to read SSID from configuration: %d\n", offset);
+    int32_t consumed_bytes = consumeString(configuration, current_index, _ssid);
+    current_index += consumed_bytes;
+    if (consumed_bytes < 0 || current_index >= configuration.size()) {
+        printf("Failed to read SSID from configuration: %d\n", consumed_bytes);
         return;
     }
 
-    offset = consumeString(configuration, current_index, _passphrase);
-    if (offset < 0) {
-        printf("Failed to read Passphrase from configuration: %d\n", offset);
+    consumed_bytes = consumeString(configuration, current_index, _passphrase);
+    current_index += consumed_bytes;
+    if (consumed_bytes < 0 || current_index >= configuration.size()) {
+        printf("Failed to read Passphrase from configuration: %d\n", consumed_bytes);
+    }
+
+    consumed_bytes = consumeString(configuration, current_index, _mqtt_broker);
+    current_index += consumed_bytes;
+    if (consumed_bytes < 0 || current_index >= configuration.size()) {
+        printf("Failed to read MQTT Broker from configuration: %d\n", consumed_bytes);
+    }
+
+    consumed_bytes = consumeString(configuration, current_index, _device_name);
+    if (consumed_bytes < 0) {
+        printf("Failed to read Device Name from configuration: %d\n", consumed_bytes);
     }
 }
 
@@ -139,7 +164,6 @@ bool read(SystemConfiguration& cfg)
     std::vector<uint8_t> configuration(total_length);
     for (size_t i = 0; i < total_length; i++, configuration_contents++) {
         configuration[i] = *(configuration_contents);
-        printf("%lu: 0x%02X\n", i, configuration[i]);
     }
     cfg = SystemConfiguration(configuration);
     return true;

@@ -65,6 +65,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--ssid', default='', help='The Wireless SSID the device should connect to')
     parser.add_argument('-p', '--passphrase', default='', help='The passphrase of the specified Wireless SSID')
+    parser.add_argument('-b', '--broker', default='', help='The MQTT Broker to connect to')
+    parser.add_argument('-d', '--device', default='', help='The device name')
     args = parser.parse_args()
     
     if not os.path.exists(CONFIGURATION_DIRECTORY):
@@ -76,11 +78,17 @@ if __name__ == '__main__':
     #   SSID
     #   Passphrase Length (Fixed 4-byte length)
     #   Passphrase
+    #   Broker Name Length (Fixed 4-byte length)
+    #   Broker Name
+    #   Device Name Length (Fixed 4-byte length)
+    #   Device Name
     #   Total Length (Fixed 4-byte length)
     #
     # This will allow the pico code to pull the configuration length from a fixed location (last 4 bytes in memory).
     totalLength = writeConfigurationItem(args.ssid, True)
     totalLength += writeConfigurationItem(args.passphrase)
+    totalLength += writeConfigurationItem(args.broker)
+    totalLength += writeConfigurationItem(args.device)
     with open(CONFIGURATION_FILE, 'ab') as configuration_file:
         configuration_file.write(totalLength.to_bytes(4, 'little'))
         totalLength += 4

@@ -157,14 +157,11 @@ int main(int argc, char** argv)
     SystemConfiguration cfg;
     if (!read(cfg)) {
         printf("Failed to read system configuration\n");
-        // return EXIT_FAILURE;
-    }
-    else {
-        printf("Read SSID: %s, Passphrase: %s\n", cfg.ssid().c_str(), cfg.passphrase().c_str());
+        return EXIT_FAILURE;
     }
 
     WifiConnection wifi(cfg.ssid(), cfg.passphrase());
-    mqtt::Client mqtt(MQTT_BROKER, CONFIGURED_MQTT_PORT, DEVICE_NAME, MQTT_FEEDBACK_PIN);
+    mqtt::Client mqtt(cfg.mqttBroker(), CONFIGURED_MQTT_PORT, cfg.deviceName(), MQTT_FEEDBACK_PIN);
 
     multicore_launch_core1(controlLoop);
 
