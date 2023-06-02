@@ -20,12 +20,10 @@ class SystemConfiguration
 {
 public:
     SystemConfiguration();
+    SystemConfiguration(const std::vector<uint8_t>& configuration);
 
     const std::string& passphrase() const;
     const std::string& ssid() const;
-
-    void setPassphrase(const std::string& value);
-    void setSSID(const std::string& value);
 
 private:
     std::string _ssid;

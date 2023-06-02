@@ -34,8 +34,10 @@ __license__ = 'BSD-3-Clause'
 
 import argparse
 import subprocess
+import os
 
 PICO_TOTAL_MEMORY_BYTES : int = (256+2)*1024*1024
+CONFIGURATION_DIRECTORY : str = 'build'
 CONFIGURATION_FILE : str = 'build/picocfg.bin'
 PICOTOOL_COMMAND : str = 'picotool'
 LOAD_OPTION : str = 'load'
@@ -64,6 +66,9 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--ssid', default='', help='The Wireless SSID the device should connect to')
     parser.add_argument('-p', '--passphrase', default='', help='The passphrase of the specified Wireless SSID')
     args = parser.parse_args()
+    
+    if not os.path.exists(CONFIGURATION_DIRECTORY):
+        os.makedirs(CONFIGURATION_DIRECTORY)
 
     # Second step is to create the configuration file.
     # Configuration file will be defined as a binary encoded file with the following values written in order:
