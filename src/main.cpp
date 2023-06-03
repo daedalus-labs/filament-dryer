@@ -94,11 +94,21 @@ static void publish(mqtt::Client& client, const feedback_entry& data)
     std::string container_humidity = std::to_string(data.container_humidity);
     std::string target_temperature = std::to_string(data.target_temperature);
 
-    mqtt::publish(client, BOARD_TEMPERATURE_TOPIC, board_temperature);
-    mqtt::publish(client, HUMIDITY_TOPIC, container_humidity);
-    mqtt::publish(client, TEMPERATURE_TOPIC, container_temperature);
-    mqtt::publish(client, HEATER_TOPIC, static_cast<uint32_t>(data.heater_on));
-    mqtt::publish(client, TARGET_TEMPERATURE_TOPIC, target_temperature);
+    char mqtt_topic[TOPIC_BUFFER_SIZE];
+    snprintf(mqtt_topic, TOPIC_BUFFER_SIZE, BOARD_TEMPERATURE_TOPIC_FORMAT.data(), client.deviceName().c_str());
+    mqtt::publish(client, mqtt_topic, board_temperature);
+
+    snprintf(mqtt_topic, TOPIC_BUFFER_SIZE, HUMIDITY_TOPIC_FORMAT.data(), client.deviceName().c_str());
+    mqtt::publish(client, mqtt_topic, container_humidity);
+
+    snprintf(mqtt_topic, TOPIC_BUFFER_SIZE, TEMPERATURE_TOPIC_FORMAT.data(), client.deviceName().c_str());
+    mqtt::publish(client, mqtt_topic, container_temperature);
+
+    snprintf(mqtt_topic, TOPIC_BUFFER_SIZE, HEATER_TOPIC_FORMAT.data(), client.deviceName().c_str());
+    mqtt::publish(client, mqtt_topic, static_cast<uint32_t>(data.heater_on));
+
+    snprintf(mqtt_topic, TOPIC_BUFFER_SIZE, TARGET_TEMPERATURE_TOPIC_FORMAT.data(), client.deviceName().c_str());
+    mqtt::publish(client, mqtt_topic, target_temperature);
 }
 
 static void initialize()
@@ -137,8 +147,10 @@ static bool initialize_mqtt(mqtt::Client& client, const std::string& board_id)
         return false;
     }
 
-    if (!client.subscribe(SET_TARGET_TEMPERATURE_TOPIC, onSetTargetTemperatureReceived)) {
-        printf("Failed to subscribe to %s\n", SET_TARGET_TEMPERATURE_TOPIC.data());
+    char mqtt_topic[TOPIC_BUFFER_SIZE];
+    snprintf(mqtt_topic, TOPIC_BUFFER_SIZE, SET_TARGET_TEMPERATURE_TOPIC_FORMAT.data(), client.deviceName().c_str());
+    if (!client.subscribe(mqtt_topic, onSetTargetTemperatureReceived)) {
+        printf("Failed to subscribe to %s\n", mqtt_topic);
         return false;
     }
 

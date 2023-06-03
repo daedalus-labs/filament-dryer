@@ -1,6 +1,7 @@
 // clang-format off
 #pragma once
 
+#include <cstdint>
 #include <string_view>
 
 /** Port of the device receiving the data (Pico W) */
@@ -28,14 +29,15 @@ inline constexpr uint8_t HEATER_CONTROL_PIN = @HEATER_CONTROL_PIN@;
 inline constexpr uint8_t SYSTEM_LED_PIN = @SYSTEM_LED_PIN@;
 
 
-inline constexpr std::string_view PROGRAM_TOPIC = "@DEVICE_NAME@";
-inline constexpr std::string_view VERSION_TOPIC = "@DEVICE_NAME@/version";
-inline constexpr std::string_view UID_TOPIC = "@DEVICE_NAME@/uid";
-inline constexpr std::string_view BOARD_TEMPERATURE_TOPIC = "@DEVICE_NAME@/board/temperature";
-inline constexpr std::string_view HUMIDITY_TOPIC = "@DEVICE_NAME@/container/humidity";
-inline constexpr std::string_view TEMPERATURE_TOPIC = "@DEVICE_NAME@/container/temperature";
-inline constexpr std::string_view TARGET_TEMPERATURE_TOPIC = "@DEVICE_NAME@/container/target_temperature";
-inline constexpr std::string_view SET_TARGET_TEMPERATURE_TOPIC = "@DEVICE_NAME@/container/target_temperature/set";
-inline constexpr std::string_view HEATER_TOPIC = "@DEVICE_NAME@/container/heater";
+inline constexpr size_t TOPIC_BUFFER_SIZE = UINT8_MAX;
+inline constexpr std::string_view PROGRAM_TOPIC_FORMAT = "%s";
+inline constexpr std::string_view VERSION_TOPIC_FORMAT = "%s/version";
+inline constexpr std::string_view UID_TOPIC_FORMAT = "%s/uid";
+inline constexpr std::string_view BOARD_TEMPERATURE_TOPIC_FORMAT = "%s/board/temperature";
+inline constexpr std::string_view HUMIDITY_TOPIC_FORMAT = "%s/container/humidity";
+inline constexpr std::string_view TEMPERATURE_TOPIC_FORMAT = "%s/container/temperature";
+inline constexpr std::string_view TARGET_TEMPERATURE_TOPIC_FORMAT = "%s/container/target_temperature";
+inline constexpr std::string_view SET_TARGET_TEMPERATURE_TOPIC_FORMAT = "%s/container/target_temperature/set";
+inline constexpr std::string_view HEATER_TOPIC_FORMAT = "%s/container/heater";
 
 // clang-format on
