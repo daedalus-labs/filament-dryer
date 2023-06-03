@@ -43,7 +43,7 @@ public:
      * @param[in] client_name The name of this MQTT client.
      * @param[in] led_pin The MQTT Feedback LED pin to use.
      */
-    Client(std::string_view broker, uint16_t port, std::string_view client_name, uint8_t led_pin);
+    Client(const std::string& broker, uint16_t port, const std::string& client_name, uint8_t led_pin);
 
     /**
      * Constructor
@@ -55,15 +55,20 @@ public:
      * @param[in] password The password associated with @a user.
      * @param[in] led_pin The MQTT Feedback LED pin to use.
      */
-    Client(std::string_view broker,
+    Client(const std::string& broker,
            uint16_t port,
-           std::string_view client_name,
-           std::string_view user,
-           std::string_view password,
+           const std::string& client_name,
+           const std::string& user,
+           const std::string& password,
            uint8_t led_pin);
 
     /** Destructor. */
     ~Client();
+
+    /**
+     * @return The device name used by this client.
+     */
+    const std::string& deviceName() const;
 
     /**
      * @return True if this client connected to MQTT, false otherwise.
@@ -90,7 +95,7 @@ public:
      * @param[in] retain True if the broker should retain this message, false otherwise.
      * @return True if the MQTT message was published, false otherwise.
      */
-    bool publish(std::string_view topic, const void* payload, uint16_t size, QoS qos, bool retain);
+    bool publish(const char* topic, const void* payload, uint16_t size, QoS qos, bool retain);
 
     /**
      * Subscribes to an MQTT topic, @a topic, using this Client's connection.
@@ -99,7 +104,7 @@ public:
      * @param[in] callback The callback to be invoked when data is available on @a topic.
      * @return True if @a topic was subscribed to, false otherwise.
      */
-    bool subscribe(std::string_view topic, TopicCallback callback);
+    bool subscribe(const char* topic, TopicCallback callback);
 
     /**
      * Unsubscribes from an MQTT topic, @a topic, using this Client's connection.
@@ -107,7 +112,7 @@ public:
      * @param[in] topic The MQTT topic to unsubscribe from.
      * @return True if @a topic was unsubscribed from, false otherwise.
      */
-    bool unsubscribe(std::string_view topic);
+    bool unsubscribe(const char* topic);
 
 private:
     /**

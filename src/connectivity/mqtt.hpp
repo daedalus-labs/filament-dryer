@@ -16,33 +16,36 @@ SPDX-License-Identifier: BSD-3-Clause
 namespace mqtt {
 static bool initialize(Client& client, const std::string& uid)
 {
-    if (!client.publish(VERSION_TOPIC, static_cast<const void*>(VERSION.data()), VERSION.size(), mqtt::QoS::EXACTLY_ONCE, true)) {
-        printf("Failed to publish %s\n", VERSION_TOPIC.data());
+    char mqtt_topic[TOPIC_BUFFER_SIZE];
+    snprintf(mqtt_topic, TOPIC_BUFFER_SIZE, VERSION_TOPIC_FORMAT.data(), client.deviceName().c_str());
+    if (!client.publish(mqtt_topic, static_cast<const void*>(VERSION.data()), VERSION.size(), mqtt::QoS::EXACTLY_ONCE, true)) {
+        printf("Failed to publish %s\n", mqtt_topic);
         return false;
     }
 
-    if (!client.publish(UID_TOPIC, static_cast<const void*>(uid.c_str()), uid.size(), mqtt::QoS::EXACTLY_ONCE, true)) {
-        printf("Failed to publish %s\n", UID_TOPIC.data());
+    snprintf(mqtt_topic, TOPIC_BUFFER_SIZE, UID_TOPIC_FORMAT.data(), client.deviceName().c_str());
+    if (!client.publish(mqtt_topic, static_cast<const void*>(uid.c_str()), uid.size(), mqtt::QoS::EXACTLY_ONCE, true)) {
+        printf("Failed to publish %s\n", mqtt_topic);
         return false;
     }
 
     return true;
 }
 
-static bool publish(Client& client, std::string_view topic, const std::string& data)
+static bool publish(Client& client, const char* topic, const std::string& data)
 {
     if (!client.publish(topic, static_cast<const void*>(data.c_str()), data.size(), mqtt::QoS::EXACTLY_ONCE, true)) {
-        printf("Failed to publish %s on %s\n", data.c_str(), topic.data());
+        printf("Failed to publish %s on %s\n", data.c_str(), topic);
         return false;
     }
 
     return true;
 }
 
-static bool publish(Client& client, std::string_view topic, uint32_t data)
+static bool publish(Client& client, const char* topic, uint32_t data)
 {
     if (!client.publish(topic, static_cast<const void*>(&data), sizeof(uint32_t), mqtt::QoS::EXACTLY_ONCE, true)) {
-        printf("Failed to publish %u on %s\n", data, topic.data());
+        printf("Failed to publish %u on %s\n", data, topic);
         return false;
     }
 

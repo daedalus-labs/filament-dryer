@@ -79,7 +79,7 @@ static void onRequestComplete(void* arg, err_t error)
 namespace mqtt {
 inline constexpr uint32_t DNS_TIMEOUT_MS = 10000;
 
-Client::Client(std::string_view broker, uint16_t port, std::string_view client_name, uint8_t led_pin)
+Client::Client(const std::string& broker, uint16_t port, const std::string& client_name, uint8_t led_pin)
     : _mqtt(mqtt_client_new()),
       _led_pin(led_pin),
       _broker(broker),
@@ -105,11 +105,11 @@ Client::Client(std::string_view broker, uint16_t port, std::string_view client_n
     _init();
 }
 
-Client::Client(std::string_view broker,
+Client::Client(const std::string& broker,
                uint16_t port,
-               std::string_view client_name,
-               std::string_view user,
-               std::string_view password,
+               const std::string& client_name,
+               const std::string& user,
+               const std::string& password,
                uint8_t led_pin)
     : _mqtt(mqtt_client_new()),
       _led_pin(led_pin),
@@ -142,6 +142,11 @@ Client::~Client()
     mqtt_disconnect(_mqtt);
     mqtt_client_free(_mqtt);
     cyw43_arch_lwip_end();
+}
+
+const std::string& Client::deviceName() const
+{
+    return _name;
 }
 
 bool Client::connected() const
@@ -178,34 +183,34 @@ bool Client::disconnect()
     return true;
 }
 
-bool Client::publish(std::string_view topic, const void* payload, uint16_t size, QoS qos, bool retain)
+bool Client::publish(const char* topic, const void* payload, uint16_t size, QoS qos, bool retain)
 {
     uint8_t qos_value = static_cast<uint8_t>(qos);
     uint8_t retain_value = static_cast<uint8_t>(retain);
 
     cyw43_arch_lwip_begin();
-    err_t error = mqtt_publish(_mqtt, topic.data(), payload, size, qos_value, retain_value, onRequestComplete, NULL);
+    err_t error = mqtt_publish(_mqtt, topic, payload, size, qos_value, retain_value, onRequestComplete, NULL);
     cyw43_arch_lwip_end();
 
     if (error != ERR_OK) {
-        printf("Publish of %s unsuccessful: %s\n", topic.data(), lwip_strerr(error));
+        printf("Publish of %s unsuccessful: %s\n", topic, lwip_strerr(error));
         return false;
     }
     return true;
 }
 
-bool Client::subscribe(std::string_view topic, TopicCallback callback)
+bool Client::subscribe(const char* topic, TopicCallback callback)
 {
     uint8_t qos_value = static_cast<uint8_t>(QoS::AT_LEAST_ONCE);
     detail::context().subscribe(topic, callback);
-    err_t error = mqtt_subscribe(_mqtt, topic.data(), qos_value, onRequestComplete, NULL);
+    err_t error = mqtt_subscribe(_mqtt, topic, qos_value, onRequestComplete, NULL);
     return error == ERR_OK;
 }
 
-bool Client::unsubscribe(std::string_view topic)
+bool Client::unsubscribe(const char* topic)
 {
     detail::context().unsubscribe(topic);
-    err_t error = mqtt_unsubscribe(_mqtt, topic.data(), onRequestComplete, NULL);
+    err_t error = mqtt_unsubscribe(_mqtt, topic, onRequestComplete, NULL);
     return error == ERR_OK;
 }
 
