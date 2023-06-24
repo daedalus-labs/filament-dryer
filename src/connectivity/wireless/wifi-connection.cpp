@@ -5,7 +5,6 @@ SPDX-License-Identifier: BSD-3-Clause
 #include "connectivity/wireless/wifi-connection.hpp"
 
 #include "connectivity/constants.hpp"
-#include "connectivity/detail/communication.hpp"
 #include "connectivity/detail/wifi-state.hpp"
 
 #include <lwip/ip.h>
