@@ -71,12 +71,12 @@ a binary blob and load in the Pico's flash. The Pico should be hooked up to the 
 The dryer publishes a collection fo MQTT topics for monitoring the status of the dryer. All topics are relative
 to the device name (i.e. if the device is named `daryl`, the container humidity will be available on `daryl/container/humidity`).
 
-| Topic                          | Description                                                                   | Data Type |
-| ------------------------------ | ----------------------------------------------------------------------------- | --------- |
-| `container/humidity`           | The current humidity within the container, as a percentage.                   | Float     |
-| `container/temperature`        | The current temperature within the container, in degrees Celsius.             | Float     |
-| `container/target_temperature` | The desired temperature within the container, in degrees Celsius.             | Float     |
-| `container/heater`             | The current state of the heater. Will be non-zero if it is on, `0` otherwise. | Integer   |
+| Topic                          | Description                                                                 | Data Type |
+| ------------------------------ | --------------------------------------------------------------------------- | --------- |
+| `container/humidity`           | The current humidity within the container, as a percentage.                 | Float     |
+| `container/temperature`        | The current temperature within the container, in degrees Celsius.           | Float     |
+| `container/target_temperature` | The desired temperature within the container, in degrees Celsius.           | Float     |
+| `container/heater`             | The current state of the heater. Will be "on" if it is on, "off" otherwise. | String    |
 
 The dryer subscribes to the following MQTT topics for command/control of the dryer:
 
