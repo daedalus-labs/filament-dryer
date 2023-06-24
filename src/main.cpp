@@ -23,6 +23,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <cstdint>
 #include <cstdio>
 #include <functional>
+#include <string_view>
 
 
 inline constexpr float HEATER_HYSTERESIS = 2.5f;
@@ -105,7 +106,12 @@ static void publish(mqtt::Client& client, const feedback_entry& data)
     mqtt::publish(client, mqtt_topic, container_temperature);
 
     snprintf(mqtt_topic, TOPIC_BUFFER_SIZE, HEATER_TOPIC_FORMAT.data(), client.deviceName().c_str());
-    mqtt::publish(client, mqtt_topic, static_cast<uint32_t>(data.heater_on));
+    if (data.heater_on) {
+        mqtt::publish(client, mqtt_topic, controllers::Heater::ON.data());
+    }
+    else {
+        mqtt::publish(client, mqtt_topic, controllers::Heater::OFF.data());
+    }
 
     snprintf(mqtt_topic, TOPIC_BUFFER_SIZE, TARGET_TEMPERATURE_TOPIC_FORMAT.data(), client.deviceName().c_str());
     mqtt::publish(client, mqtt_topic, target_temperature);
