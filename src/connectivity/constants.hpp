@@ -23,8 +23,6 @@ inline constexpr std::string_view UNKNOWN_IP = "-";
 
 namespace mqtt {
 inline constexpr uint16_t KEEP_ALIVE_TIMEOUT_S = 120;
-inline constexpr uint8_t OFF = 0;
-inline constexpr uint8_t ON = 1;
 inline constexpr uint8_t CONNECTED = ON;
 inline constexpr uint8_t DISCONNECTED = OFF;
 } // namespace mqtt

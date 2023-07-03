@@ -16,10 +16,10 @@ class Heater
 {
 public:
     /** Human readable string for the Heater ON state. */
-    static constexpr std::string_view ON = "on";
+    static constexpr std::string_view STATUS_ON = "on";
 
     /** Human readable string for the Heater OFF state. */
-    static constexpr std::string_view OFF = "off";
+    static constexpr std::string_view STATUS_OFF = "off";
 
     /**
      * Constructor.

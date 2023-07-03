@@ -107,10 +107,10 @@ static void publish(mqtt::Client& client, const feedback_entry& data)
 
     snprintf(mqtt_topic, TOPIC_BUFFER_SIZE, HEATER_TOPIC_FORMAT.data(), client.deviceName().c_str());
     if (data.heater_on) {
-        mqtt::publish(client, mqtt_topic, controllers::Heater::ON.data());
+        mqtt::publish(client, mqtt_topic, controllers::Heater::STATUS_ON.data());
     }
     else {
-        mqtt::publish(client, mqtt_topic, controllers::Heater::OFF.data());
+        mqtt::publish(client, mqtt_topic, controllers::Heater::STATUS_OFF.data());
     }
 
     snprintf(mqtt_topic, TOPIC_BUFFER_SIZE, TARGET_TEMPERATURE_TOPIC_FORMAT.data(), client.deviceName().c_str());
