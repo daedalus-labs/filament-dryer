@@ -5,6 +5,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #pragma once
 
 #include <cstdint>
+#include <string_view>
 
 
 namespace controllers {
@@ -14,6 +15,12 @@ namespace controllers {
 class Heater
 {
 public:
+    /** Human readable string for the Heater ON state. */
+    static constexpr std::string_view ON = "on";
+
+    /** Human readable string for the Heater OFF state. */
+    static constexpr std::string_view OFF = "off";
+
     /**
      * Constructor.
      *
