@@ -6,10 +6,11 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "connectivity/wireless/connection-status.hpp"
 
+#include <lwip/netif.h>
+
 #include <array>
 #include <cstdint>
 #include <string>
-#include <string_view>
 
 
 struct WifiState; // Forward declaration of WifiState
@@ -25,17 +26,19 @@ public:
     /**
      * Initializes a wireless connection to a wireless network.
      *
+     * @param[in] hostname The Hostname to be used when connecting to @a ssid.
      * @param[in] ssid The SSID of the network to connect to.
      */
-    WifiConnection(std::string_view ssid);
+    WifiConnection(const std::string &hostname, const std::string& ssid);
 
     /**
      * Initializes a wireless connection to a wireless network.
      *
+     * @param[in] hostname The Hostname to be used when connecting to @a ssid.
      * @param[in] ssid The SSID of the network to connect to.
      * @param[in] passphrase The passphrase of the network to connect to.
      */
-    WifiConnection(std::string_view ssid, std::string_view passphrase);
+    WifiConnection(const std::string &hostname, const std::string& ssid, const std::string& passphrase);
 
     /** Destructor */
     ~WifiConnection();
@@ -66,21 +69,31 @@ public:
     ConnectionStatus status() const;
 
     /**
-     * Requests this connection to perform any necessary maintenance tasks on this connection.
+     * Requests this connection to perform any necessary maintenance tasks.
      *
      * This method should be called periodically from the main thread.
      */
     void poll();
 
+    /**
+     * Resets the connection to the SSID.
+     */
+    void reset();
+
 private:
     /**
      * Helper method to connect to the defined wireless network.
-     *
-     * @param[in] ssid The SSID of the network to connect to.
-     * @param[in] passphrase The passphrase of the network to connect to.
      */
-    void _connectToWireless(std::string_view ssid, std::string_view passphrase);
+    void _connectToWireless();
 
-    WifiState* _state;
+    /**
+     * Helper method to set the hostname of this device.
+     */
+    void _setHostname();
+
     MACAddress _address;
+    std::string _hostname;
+    std::string _ssid;
+    std::string _passphrase;
+    struct netif* _interface;
 };
