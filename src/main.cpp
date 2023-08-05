@@ -32,6 +32,7 @@ inline constexpr uint32_t DATA_PERIOD_MS = 10000;
 inline constexpr uint32_t COMMUNICATION_PERIOD_MS = 10000;
 inline constexpr uint32_t MQTT_CONNECTION_WAIT_MS = 17500;
 inline constexpr uint8_t QUEUE_SIZE = 5;
+inline constexpr uint8_t WIFI_NOT_CONNECTED_THRESHOLD = 6;
 
 typedef struct
 {
@@ -146,7 +147,7 @@ static void onSetTargetTemperatureReceived(const std::string& topic, const mqtt:
     queue_add_blocking(&request_queue, &set_request);
 }
 
-static bool initialize_mqtt(mqtt::Client& client, const std::string& board_id)
+static bool initializeMQTT(mqtt::Client& client, const std::string& board_id)
 {
     if (!mqtt::initialize(client, board_id)) {
         printf("Failed to initialize MQTT\n");
@@ -169,6 +170,7 @@ int main(int argc, char** argv)
     initialize();
     std::string board_id = systemIdentifier();
     uint32_t count = 0;
+    uint32_t wifi_count = 0;
     bool mqtt_initialized = false;
 
     sleep_ms(5000);
@@ -178,12 +180,27 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    WifiConnection wifi(cfg.ssid(), cfg.passphrase());
+    WifiConnection wifi(cfg.deviceName(), cfg.ssid(), cfg.passphrase());
     mqtt::Client mqtt(cfg.mqttBroker(), CONFIGURED_MQTT_PORT, cfg.deviceName(), MQTT_FEEDBACK_PIN);
+    sleep_ms(COMMUNICATION_PERIOD_MS);
 
     multicore_launch_core1(controlLoop);
 
     while (true) {
+        if (wifi.status() != ConnectionStatus::CONNECTED) {
+            printf("Wifi status: %s\n", toString(wifi.status()).data());
+            if (wifi_count > WIFI_NOT_CONNECTED_THRESHOLD) {
+                printf("Attempting reconnect of wifi...\n");
+                wifi.reset();
+                wifi_count = 0;
+            }
+            else {
+                wifi_count++;
+            }
+            sleep_ms(COMMUNICATION_PERIOD_MS);
+            continue;
+        }
+
         if (!mqtt.connected()) {
             printf("Connecting MQTT...\n");
             mqtt_initialized = false;
@@ -194,7 +211,7 @@ int main(int argc, char** argv)
 
         if (!mqtt_initialized) {
             printf("Initializing MQTT...\n");
-            mqtt_initialized = initialize_mqtt(mqtt, board_id);
+            mqtt_initialized = initializeMQTT(mqtt, board_id);
             sleep_ms(COMMUNICATION_PERIOD_MS);
             continue;
         }

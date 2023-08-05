@@ -15,16 +15,18 @@ std::string_view toString(ConnectionStatus status)
     switch (status) {
     case ConnectionStatus::CONNECTED:
         return WIFI_STATUS_CONNECTED;
-    case ConnectionStatus::WIFI_CONNECTING:
-        return WIFI_STATUS_WIFI_CONNECTING;
-    case ConnectionStatus::CONNECTING_TO_SERVER:
-        return WIFI_STATUS_CONNECTING_TO_SERVER;
-    case ConnectionStatus::WIFI_CONNECTION_FAILURE:
-        return WIFI_STATUS_WIFI_CONNECTION_FAILURE;
-    case ConnectionStatus::INITIALIZATION_FAILURE:
-        return WIFI_STATUS_INITIALIZATION_FAILURE;
-    case ConnectionStatus::SERVER_CONNECTION_FAILURE:
-        return WIFI_STATUS_SERVER_CONNECTION_FAILURE;
+    case ConnectionStatus::CONNECTING:
+        return WIFI_STATUS_CONNECTING;
+    case ConnectionStatus::CONNECTED_NO_IP:
+        return WIFI_STATUS_CONNECTED_NO_IP;
+    case ConnectionStatus::FAILURE:
+        return WIFI_STATUS_FAILURE;
+    case ConnectionStatus::NOT_CONNECTED:
+        return WIFI_STATUS_NOT_CONNECTED;
+    case ConnectionStatus::AUTHENTICATION_FAILURE:
+        return WIFI_STATUS_AUTHENTICATION_FAILURE;
+    case ConnectionStatus::SSID_NOT_FOUND:
+        return WIFI_STATUS_SSID_NOT_FOUND;
     default:
         return WIFI_STATUS_UNKNOWN;
     }

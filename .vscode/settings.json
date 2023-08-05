@@ -73,6 +73,7 @@
         "MQTT",
         "multicore",
         "netif",
+        "NOIP",
         "Pico",
         "picocfg",
         "picoload",

@@ -8,14 +8,15 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <string_view>
 
 /** Enumeration of the possible status values of a Wireless Connection */
-enum class ConnectionStatus : uint8_t
+enum class ConnectionStatus : int8_t
 {
-    CONNECTED = 0x00,
-    WIFI_CONNECTING,
-    CONNECTING_TO_SERVER,
-    INITIALIZATION_FAILURE = 0xC0,
-    WIFI_CONNECTION_FAILURE,
-    SERVER_CONNECTION_FAILURE
+    NOT_CONNECTED = 0,          ///< Link is down
+    CONNECTING = 1,             ///< Connecting to Wifi.
+    CONNECTED_NO_IP = 2,        ///< Connected to wifi, but no IP address
+    CONNECTED = 3,              ///< Connected to wifi with an IP address
+    FAILURE = -1,               ///< Connection failed
+    SSID_NOT_FOUND = -2,        ///< No matching SSID found (could be out of range, or down)
+    AUTHENTICATION_FAILURE = -3 ///< Authentication failure
 };
 
 /**
